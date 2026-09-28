@@ -2,8 +2,16 @@ const form = document.getElementById('auth-form');
 const messageEl = document.getElementById('message');
 const tabs = document.querySelectorAll('.tab');
 
+const authScreen = document.getElementById('auth-screen');
+const loadingScreen = document.getElementById('loading-screen');
+const dashboardScreen = document.getElementById('dashboard-screen');
+const welcomeUsername = document.getElementById('welcome-username');
+const currentTimeEl = document.getElementById('current-time');
+const shoppingBtn = document.getElementById('shopping-btn');
+
 const API_URL = 'http://localhost:3000/auth';
 let mode = 'login';
+let loggedInUser = '';
 
 function setMessage(text, type = '') {
   messageEl.textContent = text;
@@ -20,6 +28,21 @@ function setMode(nextMode) {
   const submitButton = form.querySelector('.submit-btn');
   submitButton.textContent = nextMode === 'login' ? 'Enter' : 'Create Account';
   setMessage('');
+}
+
+function showScreen(screenEl) {
+  authScreen.classList.remove('active');
+  loadingScreen.classList.remove('active');
+  dashboardScreen.classList.remove('active');
+  screenEl.classList.add('active');
+}
+
+function updateTime() {
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  currentTimeEl.textContent = `${hours}:${minutes}:${seconds}`;
 }
 
 tabs.forEach((tab) => {
@@ -58,12 +81,33 @@ form.addEventListener('submit', async (event) => {
 
     setMessage(result.message, 'success');
 
-    if (mode === 'signup') {
+    if (mode === 'login') {
+      // Show loading screen
+      showScreen(loadingScreen);
+      loggedInUser = username;
+
+      // Wait 2 seconds then show dashboard
+      setTimeout(() => {
+        welcomeUsername.textContent = `Logged in as ${loggedInUser}`;
+        updateTime();
+        showScreen(dashboardScreen);
+      }, 2000);
+    } else if (mode === 'signup') {
       form.reset();
     }
   } catch (error) {
     setMessage(error.message || 'Something went wrong.', 'error');
   }
+});
+
+// Update time every second
+setInterval(updateTime, 1000);
+updateTime();
+
+// Shopping button click handler
+shoppingBtn.addEventListener('click', () => {
+  console.log('Shopping button clicked');
+  // Add your shopping functionality here
 });
 
 setMode('login');
